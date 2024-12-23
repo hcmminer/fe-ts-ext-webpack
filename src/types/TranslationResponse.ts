@@ -1,20 +1,3 @@
-// Type for Bing access token object
-export interface BingAccessToken {
-    IG: string;
-    IID: string;
-    key: string;
-    token: string;
-    tokenTs: number;
-    tokenExpiryInterval: number;
-}
-
-export interface TranslationRequest {
-    type?: string;
-    text: string;
-    sourceLang: string;
-    targetLang: string
-}
-
 export interface TranslationResponse {
     success?: boolean;
     error?: any,

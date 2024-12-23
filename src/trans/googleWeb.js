@@ -22,13 +22,18 @@ export default class googleWeb extends BaseTranslator {
     var dictAll = $(".eQJLDd");
     var dictFirst = dictAll.children(":first").find("[data-dobid='dfn']");
     var targetText = dictFirst.text();
-    // var detectedLang1 = util.detectLangFranc(text);
+    var phonetic = $("span[class='wHYlTd']")
+        .first()
+        .text()
+        .split(",")[0] // Take the first IPA transcription
+        .replace(/\//g, "") // Remove all slashes
+        .trim(); // Remove leading and trailing spaces
     var detectedLang = await util.detectLangBrowser(text);
 
     return {
       targetText,
       detectedLang,
-      transliteration: "",
+      transliteration: phonetic,
     };
   }
 }

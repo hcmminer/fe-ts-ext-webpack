@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { splitIntoSentences } from "../utils/sentenceSplitter";
 import { Icons } from "./icons";
-import {TranslationRequest, TranslationResponse} from "../types/translate";
 import { debounce } from "../utils/debounce";
+import {TranslationResponse} from "../types/TranslationResponse";
+import {TranslationRequest} from "../types/TranslationRequest";
+import browser from "webextension-polyfill";
 
 export const FloatingButton = () => {
     const radius = 80;
@@ -56,27 +58,27 @@ export const FloatingButton = () => {
     }, [isDragging, handleMouseActions]);
 
     // Cập nhật hàm handleDocumentTranslate để trả về Promise<TranslationResponse>
-    const handleDocumentTranslate = useCallback((selectionText: string): Promise<TranslationResponse> => {
-        return new Promise((resolve, reject) => {
-            const debouncedHandler = debounce(() => {
-                if (selectionText && chrome.runtime) {
+    const handleDocumentTranslate = useCallback(async (selectionText: string): Promise<TranslationResponse> => {
+        return new Promise(async (resolve, reject) => {
+            const debouncedHandler = debounce(async () => {
+                if (selectionText && browser.runtime) {
                     try {
-                        const translationRequest: TranslationRequest = {type: "translateText", text: selectionText, sourceLang: "auto", targetLang: "vi"}
-                        chrome.runtime.sendMessage(
-                            translationRequest,
-                            (response : TranslationResponse) => {
-                                if (response && response.targetText) {
-                                    resolve(response);
-                                } else {
-                                    reject("No translation result");
-                                }
-                            }
-                        );
+                        const translationRequest: TranslationRequest = { type: "translateText", text: selectionText, sourceLang: "auto", targetLang: "vi" };
+
+                        // Use await to handle the promise returned by browser.runtime.sendMessage
+                        const response: TranslationResponse = await browser.runtime.sendMessage(translationRequest);
+
+                        if (response && response.targetText) {
+                            resolve(response);
+                        } else {
+                            reject("No translation result");
+                        }
                     } catch (error) {
                         reject(error);
                     }
                 }
             }, 300);
+
             debouncedHandler();
         });
     }, []);
@@ -135,15 +137,17 @@ export const FloatingButton = () => {
     };
 
     return (
-        <div onMouseEnter={handleMouseActions}
-             onMouseLeave={handleMouseActions}
-             onMouseDown={(e) => handleMouseActions(e as React.MouseEvent)}
-             className={`fixed ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
-             style={{ left: `${position.x}px`, top: `${position.y}px`, touchAction: "none", userSelect: "none", zIndex: 99999 }}
+        <div
+            onMouseEnter={handleMouseActions}
+            onMouseLeave={handleMouseActions}
+            onMouseDown={(e) => handleMouseActions(e as React.MouseEvent)}
+            className={`shad-fixed ${isDragging ? "shad-cursor-grabbing" : "shad-cursor-grab"}`}
+            style={{ left: `${position.x}px`, top: `${position.y}px`, touchAction: "none", userSelect: "none", zIndex: 99999 }}
         >
-            <div onClick={handleClickToTranslate}
-                 className={`relative text-white shadow-xl flex items-center justify-center p-3 rounded-full 
-                    ${status === "success" ? "bg-green-500" : status === "error" ? "bg-red-500" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
+            <div
+                onClick={handleClickToTranslate}
+                className={`shad-relative text-white shad-shadow-xl shad-flex shad-items-center shad-justify-center shad-p-3 shad-rounded-full 
+                ${status === "success" ? "shad-bg-green-500" : status === "error" ? "shad-bg-red-500" : "shad-bg-gradient-to-r shad-from-cyan-500 shad-to-blue-500"}`}
             >
                 <Icons.main />
             </div>
@@ -151,22 +155,22 @@ export const FloatingButton = () => {
             {showSubButtons && (
                 <>
                     <div
-                        className="bg-green-300 hover:bg-green-400 w-12 h-12 flex items-center justify-center rounded-full absolute transition-transform duration-300"
+                        className="shad-bg-green-300 hover:shad-bg-green-400 shad-w-12 shad-h-12 shad-flex shad-items-center shad-justify-center shad-rounded-full shad-absolute shad-transition-transform shad-duration-300"
                         style={{
-                            top: radius * Math.sin(Math.PI / 2 + angleIncrement * 1),
-                            left: radius * Math.cos(Math.PI / 2 + angleIncrement * 1)
+                            top: radius * Math.sin(Math.PI / 2 + angleIncrement),
+                            left: radius * Math.cos(Math.PI / 2 + angleIncrement)
                         }}
                     >
-                        <Icons.notify/>
+                        <Icons.notify />
                     </div>
                     <div
-                        className="bg-green-300 hover:bg-green-400 w-12 h-12 flex items-center justify-center rounded-full absolute transition-transform duration-300"
+                        className="shad-bg-green-300 hover:shad-bg-green-400 shad-w-12 shad-h-12 shad-flex shad-items-center shad-justify-center shad-rounded-full shad-absolute shad-transition-transform shad-duration-300"
                         style={{
                             top: radius * Math.sin(Math.PI / 2 + angleIncrement * 2),
                             left: radius * Math.cos(Math.PI / 2 + angleIncrement * 2)
                         }}
                     >
-                        <Icons.notify/>
+                        <Icons.notify />
                     </div>
                 </>
             )}
